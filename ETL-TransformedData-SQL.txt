@@ -1,0 +1,44 @@
+
+
+
+-- Ashley He updated at 9:47 PM 13 April 2023
+
+-- bi table 1 
+-- this table shows product info per order 
+select opp.order_id as 'Order_ID'
+, p.product_id as 'Product_ID', p.product_name as 'Product_Name'
+, o.days_since_prior_order as 'Days_Since_Prior_Order'
+, a.aisle_id as 'Aisle_ID', a.aisle as 'Aisle_Name'
+, d.department_id as 'Department_ID', d.department as 'Department_Name'
+from order_products__prior opp
+inner join orders o
+on opp.order_id = o.order_id 
+left outer join products p
+on opp.product_id = p.product_id
+left outer join aisles a
+on a.aisle_id = p.aisle_id 
+left outer join departments d
+on d.department_id = p.department_id;
+
+-- bi table 2
+-- this table shows product info per user and introduces metrics such as total_order_times, reordered_rate
+-- and recommended metrics per product per user
+select o.user_id as 'User_ID'
+, p.product_id as 'Product_ID', p.product_name as 'Product_Name'
+, a.aisle_id as 'Aisle_ID', a.aisle as 'Aisle_Name'
+, d.department_id as 'Department_ID', d.department as 'Department_Name'
+, count(p.product_id) as 'Total_Order_Times'
+, cast((count(p.product_id) - 1)/ count(p.product_id)as decimal (3,2)) as 'Reordered_Rate'
+, case when (count(p.product_id) - 1)/ count(p.product_id)< 0.8 then 0
+	else 1 end as 'Recommended'
+    
+from order_products__prior opp
+inner join orders o
+on opp.order_id = o.order_id 
+left outer join products p
+on opp.product_id = p.product_id
+left outer join aisles a
+on a.aisle_id = p.aisle_id 
+left outer join departments d
+on d.department_id = p.department_id
+group by o.user_id,p.product_id, p.product_name, a.aisle_id, a.aisle, d.department_id, d.department; 
